@@ -7,11 +7,24 @@ exports.createSauce = (req, res, next) => {
     delete sauceObject._id;
     const sauce = new Sauce({
         ...sauceObject,
-        imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
+        imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`,
+        likes: 0
     });
     sauce.save()
         .then(() => res.status(201).json({ message: 'Sauce enregistrée' }))
-        .catch(error => { console.log(error); res.status(400).json({ message: error }) });
+        .catch(error => res.status(401).json({ error }));
+};
+
+exports.likedSauce = (req, res, next) => {
+    Sauce.findOne({ _id: req.params.id })
+    .then((like) => {
+        if(like){
+            Sauce.updateOne({ _id: req.params.id}, {like, _id: req.params.id})
+            .then(() => res.status(200).json({message : 'Sauce modifié'}))
+            .catch(error => res.status(404).json({error}))
+        }
+    })
+    .catch(error => console.log(error));
 };
 
 exports.modifySauce = (req, res, next) => {
